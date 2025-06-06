@@ -1,10 +1,13 @@
 {
-    "name": "Hello Extensions",
-    "description": "Base Level Extension",
-    "version": "1.0",
-    "manifest_version": 3,
-    "action": {
-      "default_popup": "hello.html",
-      "default_icon": "hello_extensions.png"
-    }
+  "manifest_version": 3,
+  "name": "Hide Dub Shows",
+  "version": "1.0",
+  "description": "Hides Crunchyroll dub shows via popup button",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": [
+  "https://www.crunchyroll.com/simulcastcalendar*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "crunchyroll_logo.png"
   }
+}
