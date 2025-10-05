@@ -1,6 +1,6 @@
 # Crunchyroll – Hide Dub (Chrome/Chromium Extension) 
 
-> 🚧 **Note: This extension is still a work in progress.**  
+> **Note: This extension is still a work in progress.**  
 > Some features may not be fully stable, and improvements are ongoing.
 
 Filter out dubbed videos on Crunchyroll so you only see the subbed versions.  
