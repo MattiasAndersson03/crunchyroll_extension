@@ -1,4 +1,4 @@
-# Crunchyroll – Hide Dub (Chrome/Chromium Extension) Broken
+# Crunchyroll – Hide Dub (Chrome Extension)
 
 > **Note: This extension is still a work in progress.**  
 > Some features may not be fully stable, and improvements are ongoing.
