@@ -1,99 +1,90 @@
+// --- Configuration ---
+const languageMarkers = [
+  'dub)', 'dubbed)', '(english)', '(français)', '(deutsch)', 
+  '(italiano)', '(español', '(português', '(hindi)', '(tamil)',
+  '(russian', '(castilian', '(arabic', '(chinese', '(mandarin',
+  '普通话', '中文', '粵語', '(brasil))', '(latina))'
+];
 
+let observer = null;
+let styleTag = null;
+
+// --- COre fea---
 
 function hideDubShows() {
-  console.log('[HideDub] Kör hideDubShows');
-  const showTitles = document.querySelectorAll('cite');
-  if (showTitles.length === 0) {
-    console.log('[HideDub] Inga <cite>-element hittades på sidan');
-  }
-  let found = false;
+  // Hittar alla <cite> som inte redan har markerats
+  const showTitles = document.querySelectorAll('cite:not(.checked-dub)');
+  
   showTitles.forEach(el => {
-    if (
-      el.textContent &&
-      el.textContent.toLowerCase().includes('dub') &&
-      !el.classList.contains('checked-dub')
-    ) {
-      found = true;
-      // Dölj hela <li>-elementet om det är en dub
-      const liElem = el.closest('li');
-      if (liElem) {
-        liElem.classList.add('hidden-dub');
-        console.log('[HideDub] Dold hela li:', el.textContent.trim());
-      } else {
-        // fallback: dölj release-article eller cite
-        const releaseArticle = el.closest('article.release');
-        if (releaseArticle) {
-          releaseArticle.classList.add('hidden-dub');
-          console.log('[HideDub] Dold hela release:', el.textContent.trim());
-        } else {
-          el.classList.add('hidden-dub');
-          console.log('[HideDub] Dold bara cite:', el.textContent.trim());
-        }
-      }
+    const text = el.textContent ? el.textContent.toLowerCase() : '';
+    
+    // Kollar om texten innehåller "dub" eller något av språken i listan
+    const isDub = languageMarkers.some(lang => text.includes(lang));
+
+    if (isDub) {
+      // Försöker hitta närmaste li eller article för att dölja hela kortet
+      const target = el.closest('li') || el.closest('article.release') || el;
+      target.classList.add('hidden-dub');
+      el.classList.add('checked-dub');
+      console.log('[HideDub] Dold:', text.trim());
+    } else {
+      // Markera som kollad även om den inte döljs för att slippa kolla den igen
       el.classList.add('checked-dub');
     }
   });
-  if (!found) {
-    console.log('[HideDub] Inga dubbar hittades att dölja');
+}
+
+function startHideDub() {
+  // 1. Lägg till CSS-regeln i head
+  if (!document.getElementById('hide-dub-style')) {
+    styleTag = document.createElement('style');
+    styleTag.id = 'hide-dub-style';
+    styleTag.textContent = `.hidden-dub { display: none !important; }`;
+    document.head.appendChild(styleTag);
+  }
+
+  // 2. Kör direkt på befintliga element
+  hideDubShows();
+
+  // 3. Starta MutationObserver för att bevaka dynamiskt innehåll
+  if (!observer) {
+    observer = new MutationObserver(() => {
+      hideDubShows();
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    console.log('[HideDub] Bevakar sidan efter nya dubbar...');
   }
 }
 
-function showDubShows() {
+function stopHideDub() {
+  // Stoppa observern
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+    console.log('[HideDub] Slutat bevaka sidan');
+  }
+
+  // Ta bort CSS-taggen
+  const existingStyle = document.getElementById('hide-dub-style');
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+
+  // Visa alla dolda element igen
   document.querySelectorAll('.hidden-dub').forEach(el => el.classList.remove('hidden-dub'));
   document.querySelectorAll('.checked-dub').forEach(el => el.classList.remove('checked-dub'));
 }
 
-let interval = null;
-let styleTag = null;
-let showInterval = null;
+// --- Initiering och lyssnare ---
 
-function startHideDub() {
-  // Stoppa showInterval om det finns
-  if (showInterval) {
-    clearInterval(showInterval);
-    showInterval = null;
-    console.log('[HideDub] startHideDub: showInterval stoppad');
-  }
-  if (!styleTag) {
-    styleTag = document.createElement('style');
-    styleTag.textContent = `.hidden-dub { display: none !important; }`;
-    document.head.appendChild(styleTag);
-  }
-  hideDubShows();
-  if (interval) clearInterval(interval);
-  interval = setInterval(hideDubShows, 1000);
-  console.log('[HideDub] startHideDub: interval för att dölja dubbar startad');
-}
-
-function stopHideDub() {
-  // Stoppa interval om det finns
-  if (interval) {
-    clearInterval(interval);
-    interval = null;
-    console.log('[HideDub] stopHideDub: interval för att dölja dubbar stoppad');
-  }
-  if (showInterval) {
-    clearInterval(showInterval);
-    showInterval = null;
-  }
-  showDubShows(); // Visa dubbar direkt
-  if (styleTag) {
-    styleTag.remove();
-    styleTag = null;
-    console.log('[HideDub] stopHideDub: styleTag borttagen');
-  }
-}
-
-
-console.log('[HideDub] Content-script laddat!');
+// Kolla inställningen vid start
 chrome.storage.sync.get(['hideDubEnabled'], (result) => {
-  console.log('[HideDub] hideDubEnabled:', result.hideDubEnabled);
   if (result.hideDubEnabled) {
     startHideDub();
   }
 });
 
-
+// Lyssna på ändringar från popup/inställningar
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === 'sync' && changes.hideDubEnabled) {
     if (changes.hideDubEnabled.newValue) {
