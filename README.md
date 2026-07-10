@@ -16,7 +16,7 @@ Lightweight, no sign-in, and works directly on crunchyroll.com result and series
 - ⚡ **Fast and lightweight** content script
 - 🧭 **Popup toggle** to quickly enable/disable the filter
 - 🧑‍💻 **No tracking, no analytics**
-
+- Dark mode för more eye friendly
 ---
 
 ## How it works (high level)
